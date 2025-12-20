@@ -1,5 +1,6 @@
 package com.Guru.BankingApp.service.Impl;
 
+import com.Guru.BankingApp.GlobalExceptionHandler.InsufficientBalanceException;
 import com.Guru.BankingApp.dto.AccountDto;
 import com.Guru.BankingApp.entity.Account;
 import com.Guru.BankingApp.mapper.AccountMapper;
@@ -52,13 +53,9 @@ public class AccountServiceImpl implements AccountService {
         Account account = accountRepository.
                 findById(id).
                 orElseThrow(() -> new RuntimeException("Account does not exists"));
-        if(account.getBalance() < amount){
-            throw new RuntimeException("Insufficient amount");
-        }
         double total = account.getBalance() - amount;
         account.setBalance(total);
         Account savedAccount = accountRepository.save(account);
-
         return AccountMapper.mapToAccountDto(savedAccount);
     }
 
