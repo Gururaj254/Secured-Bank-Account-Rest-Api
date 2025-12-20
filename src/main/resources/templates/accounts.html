@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Bank Account Management</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body>
+
+<div class="container">
+    <h1>🏦 Bank Account Management System</h1>
+
+    <!-- Create Account -->
+    <div class="card">
+        <h2>Create Account</h2>
+        <input type="text" id="name" placeholder="Account Holder Name">
+        <input type="number" id="balance" placeholder="Initial Balance">
+        <button onclick="createAccount()">Create</button>
+    </div>
+
+    <!-- Deposit / Withdraw -->
+    <div class="card">
+        <h2>Deposit / Withdraw</h2>
+        <input type="number" id="accId" placeholder="Account ID">
+        <input type="number" id="amount" placeholder="Amount">
+        <button onclick="deposit()">Deposit</button>
+        <button class="danger" onclick="withdraw()">Withdraw</button>
+    </div>
+
+    <!-- Account Table -->
+    <div class="card">
+        <h2>All Accounts</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Balance</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+            <tbody id="accountTable">
+            <!-- Filled by JS -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const BASE_URL = "/api/accounts";
+
+    window.onload = loadAccounts;
+
+    function loadAccounts() {
+        fetch(BASE_URL)
+            .then(res => res.json())
+            .then(data => {
+                const table = document.getElementById("accountTable");
+                table.innerHTML = "";
+                data.forEach(acc => {
+                    table.innerHTML += `
+                        <tr>
+                            <td>${acc.id}</td>
+                            <td>${acc.accountHolderName}</td>
+                            <td>₹ ${acc.balance}</td>
+                            <td>
+                                <button class="danger"
+                                    onclick="deleteAccount(${acc.id})">
+                                    Delete
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            });
+    }
+
+    function createAccount() {
+        fetch(BASE_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                accountHolderName: document.getElementById("name").value,
+                balance: document.getElementById("balance").value
+            })
+        }).then(() => {
+            alert("Account Created");
+            loadAccounts();
+        });
+    }
+
+    function deposit() {
+        fetch(`${BASE_URL}/${accId.value}/deposit?amount=${amount.value}`, {
+            method: "PUT"
+        }).then(() => {
+            alert("Amount Deposited");
+            loadAccounts();
+        });
+    }
+
+    function withdraw() {
+        fetch(`${BASE_URL}/${accId.value}/withdraw?amount=${amount.value}`, {
+            method: "PUT"
+        }).then(() => {
+            alert("Amount Withdrawn");
+            loadAccounts();
+        });
+    }
+
+    function deleteAccount(id) {
+        fetch(`${BASE_URL}/${id}`, {
+            method: "DELETE"
+        }).then(() => {
+            alert("Account Deleted");
+            loadAccounts();
+        });
+    }
+</script>
+
+</body>
+</html>
