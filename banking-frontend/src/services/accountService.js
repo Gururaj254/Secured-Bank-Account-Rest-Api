@@ -1,19 +1,27 @@
-import API from "../api/axiosConfig";
+import axios from "axios";
 
-// Create account
-export const createAccount = (data) => API.post("/accounts", data);
+// Make sure this matches your Spring Boot port
+const API_URL = "http://localhost:8090/api/accounts";
 
-// Get all accounts
-export const getAccounts = () => API.get("/api/accounts")
+export const getAccounts = () => axios.get(API_URL);
 
-// Deposit
-export const deposit = (id, amount) =>
-  API.put(`/accounts/${id}/deposit`, { amount });
+// --- ADDED THIS FUNCTION ---
+// This handles creating a new account. 
+// ID is not required because MySQL handles auto-increment.
+export const addAccount = (accountData) => {
+  return axios.post(`${API_URL}`, accountData);
+};
 
-// Withdraw
-export const withdraw = (id, amount) =>
-  API.put(`/accounts/${id}/withdraw`, { amount });
+export const deposit = (id, amount) => {
+  // Wrapping 'amount' in an object { amount: value } to match your Java Map
+  return axios.put(`${API_URL}/${id}/deposit`, { amount });
+};
 
-// Delete account
-export const deleteAccount = (id) =>
-  API.delete(`/accounts/${id}`);
+export const withdraw = (id, amount) => {
+  // Wrapping 'amount' in an object { amount: value }
+  return axios.put(`${API_URL}/${id}/withdraw`, { amount });
+};
+
+export const deleteAccount = (id) => {
+  return axios.delete(`${API_URL}/${id}`);
+};
