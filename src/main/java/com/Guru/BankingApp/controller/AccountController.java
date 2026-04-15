@@ -1,6 +1,8 @@
 package com.Guru.BankingApp.controller;
 
 import com.Guru.BankingApp.dto.AccountDto;
+import com.Guru.BankingApp.entity.Transaction;
+import com.Guru.BankingApp.repository.TransactionRepository;
 import com.Guru.BankingApp.service.AccountService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,9 +16,11 @@ import java.util.Map;
 public class AccountController {
 
     private final AccountService accountService;
+    private final TransactionRepository transactionRepository;
 
-    public AccountController(AccountService accountService) {
+    public AccountController(AccountService accountService, TransactionRepository transactionRepository) {
         this.accountService = accountService;
+        this.transactionRepository = transactionRepository;
     }
 
     @PostMapping
@@ -69,5 +73,11 @@ public class AccountController {
     public ResponseEntity<String> deleteAccount(@PathVariable Long id) {
         accountService.deleteAccount(id);
         return ResponseEntity.ok("Account deleted successfully");
+    }
+
+
+    @GetMapping("/{id}/transactions")
+    public List<Transaction> getHistory(@PathVariable Long id) {
+        return transactionRepository.findByAccountIdOrderByTimestampDesc(id);
     }
 }

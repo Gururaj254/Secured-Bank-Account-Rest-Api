@@ -1,19 +1,23 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "./Dashboard.css"; 
 import {
   getAccounts,
   deposit,
   withdraw,
   deleteAccount,
   addAccount,
+  getTransactionHistory, 
 } from "../services/accountService";
 
 function Dashboard() {
   const [accounts, setAccounts] = useState([]);
-  const [view, setView] = useState("menu"); // "menu", "list", "create"
+  const [transactions, setTransactions] = useState([]); // New state for history
+  const [view, setView] = useState("menu"); // "menu", "list", "create", "history"
   const [newName, setNewName] = useState("");
   const [newBalance, setNewBalance] = useState("");
-  
+  const [selectedAccountName, setSelectedAccountName] = useState("");
+
   const navigate = useNavigate();
   const currentUser = localStorage.getItem("username") || "User";
 
@@ -40,7 +44,7 @@ function Dashboard() {
     navigate("/");
   };
 
-  // --- Transaction Logic (The missing functions) ---
+  // --- Transaction Logic ---
 
   const handleDeposit = async (id) => {
     const amount = prompt("Enter amount to deposit (₹):");
@@ -50,7 +54,7 @@ function Dashboard() {
       alert("Deposit successful!");
       loadAccounts();
     } catch (err) {
-      alert("Deposit failed. Check backend.");
+      alert("Deposit failed.");
     }
   };
 
@@ -63,6 +67,17 @@ function Dashboard() {
       loadAccounts();
     } catch (err) {
       alert("Withdrawal failed. Check balance.");
+    }
+  };
+
+  const handleViewHistory = async (id, name) => {
+    try {
+      const res = await getTransactionHistory(id);
+      setTransactions(res.data);
+      setSelectedAccountName(name);
+      setView("history");
+    } catch (err) {
+      alert("Could not load transaction history.");
     }
   };
 
@@ -96,23 +111,21 @@ function Dashboard() {
   // --- UI Components ---
 
   const Header = () => (
-    <div style={headerStyle}>
+    <div className="header">
       <h2 style={{ margin: 0 }}>🏦 Guru Bank</h2>
-      <button onClick={handleLogout} style={logoutBtnStyle}>Logout</button>
+      <button onClick={handleLogout} className="logout-btn">Logout</button>
     </div>
   );
 
   const WelcomeMenu = () => (
-    <div style={{ textAlign: "center", marginTop: "80px" }}>
-      <h1 style={{ color: "#2c3e50", fontSize: "36px" }}>Welcome, {currentUser}!</h1>
-      <p style={{ color: "#7f8c8d", fontSize: "18px", marginBottom: "40px" }}>
-        What would you like to manage today?
-      </p>
-      <div style={{ display: "flex", gap: "25px", justifyContent: "center" }}>
-        <button onClick={() => setView("list")} style={actionBtnStyle("#3498db")}>
+    <div className="menu-container">
+      <h1 className="menu-title">Welcome, {currentUser}!</h1>
+      <p className="menu-subtitle">What would you like to manage today?</p>
+      <div className="btn-group">
+        <button onClick={() => setView("list")} className="btn-action bg-blue">
           🔍 View All Accounts
         </button>
-        <button onClick={() => setView("create")} style={actionBtnStyle("#2ecc71")}>
+        <button onClick={() => setView("create")} className="btn-action bg-green">
           ➕ Create New Account
         </button>
       </div>
@@ -120,45 +133,83 @@ function Dashboard() {
   );
 
   const CreateForm = () => (
-    <div style={formContainerStyle}>
-      <button onClick={() => setView("menu")} style={backBtnStyle}>⬅ Back to Menu</button>
+    <div className="form-wrapper">
+      <button onClick={() => setView("menu")} className="btn-back">⬅ Back to Menu</button>
       <h2 style={{ marginTop: "30px", color: "#2c3e50" }}>Open New Account</h2>
-      <form onSubmit={handleAddAccount} style={formStyle}>
+      <form onSubmit={handleAddAccount} className="account-form">
         <input 
-          style={inputStyle} 
+          className="input-field" 
           placeholder="Account Holder Name" 
           value={newName} 
           onChange={(e) => setNewName(e.target.value)} 
         />
         <input 
-          style={inputStyle} 
+          className="input-field" 
           type="number" 
           placeholder="Initial Deposit (₹)" 
           value={newBalance} 
           onChange={(e) => setNewBalance(e.target.value)} 
         />
-        <button type="submit" style={actionBtnStyle("#2ecc71")}>Confirm & Open</button>
+        <button type="submit" className="btn-action bg-green">Confirm & Open</button>
       </form>
     </div>
   );
 
+  const HistoryTable = () => (
+    <div className="list-container">
+      <div className="list-inner">
+        <button onClick={() => setView("list")} className="btn-back">⬅ Back to Accounts</button>
+        <h2 style={{ textAlign: "center", marginBottom: "20px", color: "#2c3e50" }}>
+          History for {selectedAccountName}
+        </h2>
+        <div className="history-card">
+          <table className="transaction-table">
+            <thead>
+              <tr>
+                <th>Date & Time</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Closing Balance</th>
+              </tr>
+            </thead>
+            <tbody>
+              {transactions.length > 0 ? transactions.map((tx) => (
+                <tr key={tx.id}>
+                  <td>{new Date(tx.timestamp).toLocaleString()}</td>
+                  <td className={tx.type === 'DEPOSIT' ? 'type-deposit' : 'type-withdraw'}>
+                    {tx.type}
+                  </td>
+                  <td>₹{tx.amount.toLocaleString()}</td>
+                  <td>₹{tx.postBalance.toLocaleString()}</td>
+                </tr>
+              )) : (
+                <tr>
+                  <td colSpan="4" style={{ textAlign: 'center', padding: '20px' }}>No transactions found.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+
   const AccountList = () => (
-    <div style={{ padding: "40px 20px" }}>
-      <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-        <button onClick={() => setView("menu")} style={backBtnStyle}>⬅ Back to Menu</button>
+    <div className="list-container">
+      <div className="list-inner">
+        <button onClick={() => setView("menu")} className="btn-back">⬅ Back to Menu</button>
         <h2 style={{ textAlign: "center", marginBottom: "40px", color: "#2c3e50" }}>Your Registered Accounts</h2>
-        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "20px" }}>
+        <div className="card-grid">
           {accounts.map((acc) => (
-            <div key={acc.id} style={cardStyle}>
+            <div key={acc.id} className="account-card">
               <h3 style={{ margin: "0 0 10px 0", color: "#2c3e50" }}>👤 {acc.accountHolderName}</h3>
               <p style={{ margin: "5px 0", color: "#95a5a6" }}>ID: {acc.id}</p>
-              <p style={{ margin: "10px 0", fontSize: "22px", color: "#27ae60", fontWeight: "bold" }}>
-                ₹{acc.balance.toLocaleString()}
-              </p>
-              <div style={{ marginTop: "20px", display: "flex", gap: "10px" }}>
-                <button onClick={() => handleDeposit(acc.id)} style={opBtnStyle("#3498db")}>Deposit</button>
-                <button onClick={() => handleWithdraw(acc.id)} style={opBtnStyle("#f39c12")}>Withdraw</button>
-                <button onClick={() => handleDelete(acc.id)} style={opBtnStyle("#e74c3c")}>Delete</button>
+              <p className="balance-text">₹{acc.balance.toLocaleString()}</p>
+              <div className="card-actions">
+                <button onClick={() => handleDeposit(acc.id)} className="btn-op bg-blue">Deposit</button>
+                <button onClick={() => handleWithdraw(acc.id)} className="btn-op bg-orange">Withdraw</button>
+                <button onClick={() => handleViewHistory(acc.id, acc.accountHolderName)} className="btn-op bg-green">History</button>
+                <button onClick={() => handleDelete(acc.id)} className="btn-op bg-red">Delete</button>
               </div>
             </div>
           ))}
@@ -168,24 +219,14 @@ function Dashboard() {
   );
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#f8f9fa" }}>
+    <div className="dashboard-container">
       <Header />
       {view === "menu" && <WelcomeMenu />}
       {view === "create" && <CreateForm />}
       {view === "list" && <AccountList />}
+      {view === "history" && <HistoryTable />}
     </div>
   );
 }
-
-// --- Styles (Same as before) ---
-const headerStyle = { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "15px 40px", backgroundColor: "#2c3e50", color: "white", boxShadow: "0 2px 10px rgba(0,0,0,0.1)" };
-const logoutBtnStyle = { backgroundColor: "transparent", border: "1px solid #ecf0f1", color: "white", padding: "6px 15px", borderRadius: "5px", cursor: "pointer" };
-const formContainerStyle = { maxWidth: "450px", margin: "60px auto", padding: "20px" };
-const formStyle = { display: "flex", flexDirection: "column", gap: "15px", backgroundColor: "white", padding: "30px", borderRadius: "12px", boxShadow: "0 8px 20px rgba(0,0,0,0.05)" };
-const actionBtnStyle = (bgColor) => ({ backgroundColor: bgColor, color: "white", border: "none", padding: "18px 35px", borderRadius: "10px", cursor: "pointer", fontSize: "17px", fontWeight: "bold", boxShadow: "0 4px 15px rgba(0,0,0,0.1)" });
-const backBtnStyle = { background: "none", border: "1px solid #95a5a6", color: "#7f8c8d", padding: "8px 15px", borderRadius: "6px", cursor: "pointer", fontWeight: "bold" };
-const inputStyle = { padding: "12px", borderRadius: "8px", border: "1px solid #dfe6e9", fontSize: "16px" };
-const cardStyle = { border: "none", borderRadius: "15px", padding: "25px", width: "320px", boxShadow: "0 10px 25px rgba(0,0,0,0.05)", backgroundColor: "white" };
-const opBtnStyle = (bg) => ({ backgroundColor: bg, color: "white", border: "none", padding: "10px", borderRadius: "6px", cursor: "pointer", flex: 1, fontWeight: "600", fontSize: "14px" });
 
 export default Dashboard;

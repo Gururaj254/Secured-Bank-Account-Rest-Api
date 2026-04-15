@@ -1,0 +1,63 @@
+/* Variables for easy theme management */
+:root {
+  --primary: #2c3e50;
+  --secondary: #7f8c8d;
+  --success: #27ae60;
+  --danger: #e74c3c;
+  --warning: #f39c12;
+  --info: #3498db;
+  --bg-light: #f8f9fa;
+  --shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.dashboard-container { min-height: 100vh; background: var(--bg-light); font-family: sans-serif; }
+
+/* Header & Shared Layout */
+.header { 
+  display: flex; justify-content: space-between; align-items: center; 
+  padding: 15px 40px; background: var(--primary); color: white; 
+}
+
+.list-container { padding: 40px 20px; max-width: 1200px; margin: 0 auto; }
+
+/* Cards & Forms */
+.account-card, .account-form, .history-card {
+  background: white; border-radius: 12px; padding: 25px; 
+  box-shadow: var(--shadow); border: none;
+}
+
+.account-card { width: 320px; }
+.card-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
+
+/* Grid for buttons inside the card */
+.card-actions {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;
+}
+
+/* Form Styling */
+.form-wrapper { max-width: 450px; margin: 60px auto; }
+.account-form { display: flex; flex-direction: column; gap: 15px; }
+.input-field { padding: 12px; border: 1px solid #dfe6e9; border-radius: 8px; }
+
+/* Buttons */
+.btn-action, .btn-op, .logout-btn, .btn-back { cursor: pointer; border-radius: 6px; transition: 0.2s; }
+
+.btn-action { border: none; color: white; padding: 15px 30px; font-weight: bold; width: 100%; }
+.btn-op { border: none; color: white; padding: 10px; font-weight: 600; font-size: 14px; }
+.btn-back { background: none; border: 1px solid var(--secondary); color: var(--secondary); padding: 8px 15px; margin-bottom: 20px; }
+.logout-btn { background: transparent; border: 1px solid white; color: white; padding: 5px 12px; }
+
+/* Transaction Table */
+.history-card { overflow-x: auto; margin-top: 20px; }
+.transaction-table { width: 100%; border-collapse: collapse; }
+.transaction-table th { background: #f1f3f5; padding: 12px; text-align: left; }
+.transaction-table td { padding: 12px; border-bottom: 1px solid #eee; }
+
+/* Utilities */
+.bg-blue { background: var(--info); }
+.bg-green { background: var(--success); }
+.bg-orange { background: var(--warning); }
+.bg-red { background: var(--danger); }
+.type-deposit { color: var(--success); font-weight: bold; }
+.type-withdraw { color: var(--danger); font-weight: bold; }
+.balance-text { font-size: 22px; color: var(--success); font-weight: bold; margin: 10px 0; }
